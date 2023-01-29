@@ -1,4 +1,4 @@
-enum signalStates {INERT, GO, RESOLVE, GOCHALLENGE}
+enum signalStates {INERT, GO, RESOLVE, GOCHALLENGE};
 byte signalState = INERT;
 //water, fire, plant, rock, lightning (0-4)
 //water cannot go next to fire or lightning
