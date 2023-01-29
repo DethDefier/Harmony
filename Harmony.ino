@@ -1,3 +1,4 @@
+//A game for Blinks by 
 enum signalStates {INERT, GO, RESOLVE};
 byte signalState = INERT;
 //water, fire, plant, rock, lightning (0-4)
@@ -11,6 +12,7 @@ byte cycleAngry = 0;
 byte cycleHappy = 0;
 
 void setup() {
+  randomize();
   changeGameState();
 }
 
@@ -104,6 +106,7 @@ void goLoop() {
       }
     }
   }
+  setColor(dim(WHITE,150));
 }
 
 void resolveLoop() {
@@ -117,6 +120,7 @@ void resolveLoop() {
       }
     }
   }
+  setColor(WHITE);
 }
 
 void changeGameState() {
