@@ -1,5 +1,4 @@
-//A game for Blinks by 
-enum signalStates {INERT, GO, RESOLVE};
+enum signalStates {INERT, GO, RESOLVE, GOCHALLENGE}
 byte signalState = INERT;
 //water, fire, plant, rock, lightning (0-4)
 //water cannot go next to fire or lightning
@@ -10,6 +9,7 @@ byte signalState = INERT;
 byte gameState = 0;
 byte cycleAngry = 0;
 byte cycleHappy = 0;
+bool challengeMode = false;
 
 void setup() {
   randomize();
@@ -27,14 +27,23 @@ void loop() {
     case RESOLVE:
       resolveLoop();
       break;
+    case GOCHALLENGE:
+      goChallengeLoop();
+      break;
   }
   setValueSentOnAllFaces(signalState);
   if (signalState == INERT) {
-    setValueSentOnAllFaces(gameState + 3);
+    setValueSentOnAllFaces(gameState + 10);
   }
 }
 
 void inertLoop() {
+  if (buttonMultiClicked()) {
+    byte clicks = buttonClickCount();
+    if (clicks == 3) {
+      signalState = GOCHALLENGE;
+    }
+  }
   //set myself to GO and randomize color if double clicked
   if (buttonDoubleClicked()) {
     signalState = GO;
@@ -51,15 +60,20 @@ void inertLoop() {
         signalState = GO;
         changeGameState();
         break;
-      } else if (getLastValueReceivedOnFace(f) == gameState + 4) {
+      } if (getLastValueReceivedOnFace(f) == GOCHALLENGE) {//a neighbor saying GOCHALLENGE!
+        signalState = GOCHALLENGE;
+        break;
+      } else if (getLastValueReceivedOnFace(f) == gameState + 11) {
         dispAngry(f);
-      } else if (getLastValueReceivedOnFace(f) == gameState + 2) {
+      } else if (getLastValueReceivedOnFace(f) == gameState + 9) {
         dispAngry(f);
-      } else if ((getLastValueReceivedOnFace(f) == 3) && (gameState == 4)) {
+      } else if ((getLastValueReceivedOnFace(f) == 10) && (gameState == 4)) {
         dispAngry(f);
-      } else if ((getLastValueReceivedOnFace(f) == 7) && (gameState == 0)) {
+      } else if ((getLastValueReceivedOnFace(f) == 14) && (gameState == 0)) {
         dispAngry(f);
-      } 
+      } else if ((getLastValueReceivedOnFace(f) == gameState + 10) && (challengeMode)) {
+        dispAngry(f);
+      }  
     } else {
       //if no neighbor it senses no disagreement
       showColorOnFace(f);
@@ -101,12 +115,29 @@ void goLoop() {
   //look for neighbors who have not heard the GO news
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
-      if ((!getLastValueReceivedOnFace(f) == GO) && (!getLastValueReceivedOnFace(f) == RESOLVE)) {//This neighbor doesn't know it's GO time. Stay in GO
+      if (getLastValueReceivedOnFace(f) == INERT) {//This neighbor doesn't know it's GO time. Stay in GO
         signalState = GO;
       }
     }
   }
   setColor(dim(WHITE,150));
+}
+
+void goChallengeLoop() {
+  signalState = RESOLVE;//I default to this at the start of the loop. Only if I see a problem does this not happen
+
+  //look for neighbors who have not heard the GOCHALLENGE news
+  FOREACH_FACE(f) {
+    if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
+      if (getLastValueReceivedOnFace(f) == INERT) {//This neighbor doesn't know it's GO time. Stay in GO
+        signalState = GOCHALLENGE;
+      }
+    }
+  }
+  setColor(dim(MAGENTA,200));
+  if (signalState == RESOLVE) {
+    challengeMode = !challengeMode;
+  }
 }
 
 void resolveLoop() {
