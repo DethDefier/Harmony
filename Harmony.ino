@@ -7,6 +7,8 @@ byte signalState = INERT;
 //rock cannot go next to plant or lightning
 //lightning cannot go next to rock or water
 byte gameState = 0;
+byte cycleAngry = 0;
+byte cycleHappy = 0;
 
 void setup() {
   changeGameState();
@@ -36,27 +38,58 @@ void inertLoop() {
     signalState = GO;
     changeGameState();
   }
+  cycleAngry = sin8_C(millis()/2 % 256);
+  cycleHappy = sin8_C(millis()/6 % 256);
   //set color to white by default
-  setColor(WHITE);
+  dispBlank();
   //listen for neighbors in GO and for colors they dont like
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
       if (getLastValueReceivedOnFace(f) == GO) {//a neighbor saying GO!
         signalState = GO;
         changeGameState();
+        break;
       } else if (getLastValueReceivedOnFace(f) == gameState + 4) {
-        showColorOnFace(f);
+        dispAngry(f);
       } else if (getLastValueReceivedOnFace(f) == gameState + 2) {
-        showColorOnFace(f);
+        dispAngry(f);
       } else if ((getLastValueReceivedOnFace(f) == 3) && (gameState == 4)) {
-        showColorOnFace(f);
+        dispAngry(f);
       } else if ((getLastValueReceivedOnFace(f) == 7) && (gameState == 0)) {
-        showColorOnFace(f);
+        dispAngry(f);
       } 
     } else {
-      //if no neighbor it sense no disagreement
+      //if no neighbor it senses no disagreement
       showColorOnFace(f);
     }
+  }
+}
+
+void dispBlank() {
+  if (gameState == 0) {
+    setColor(makeColorRGB(cycleHappy,cycleHappy,255));
+  } if (gameState == 1) {
+    setColor(makeColorRGB(255,cycleHappy,cycleHappy));
+  } if (gameState == 2) {
+    setColor(makeColorRGB(cycleHappy,255,cycleHappy));
+  } if (gameState == 3) {
+    setColor(makeColorRGB(255,170 + cycleHappy/3,cycleHappy));
+  } if (gameState == 4) {
+    setColor(makeColorRGB(255,255,cycleHappy));
+  }
+}
+
+void dispAngry(byte f) {
+  if (gameState == 0) {
+    setColorOnFace(dim(BLUE,cycleAngry),f);
+  } if (gameState == 1) {
+    setColorOnFace(dim(RED,cycleAngry),f);
+  } if (gameState == 2) {
+    setColorOnFace(dim(GREEN,cycleAngry),f);
+  } if (gameState == 3) {
+    setColorOnFace(dim(ORANGE,cycleAngry),f);
+  } if (gameState == 4) {
+    setColorOnFace(dim(YELLOW,cycleAngry),f);
   }
 }
 
@@ -88,6 +121,7 @@ void resolveLoop() {
 
 void changeGameState() {
   //set to random color
+  //randomize();
   gameState = random(4);
 }
 
