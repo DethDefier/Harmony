@@ -9,6 +9,8 @@ byte signalState = INERT;
 byte gameState = 0;
 byte cycleAngry = 0;
 byte cycleHappy = 0;
+byte modeTimer = 0;
+byte modeTimerMax = 15;
 bool challengeMode = false;
 
 void setup() {
@@ -35,6 +37,9 @@ void loop() {
   if (signalState == INERT) {
     setValueSentOnAllFaces(gameState + 10);
   }
+  if (modeTimer > 0) {
+    modeTimer--;
+  }
 }
 
 void inertLoop() {
@@ -42,12 +47,13 @@ void inertLoop() {
     byte clicks = buttonClickCount();
     if (clicks == 3) {
       signalState = GOCHALLENGE;
+      modeTimer = modeTimerMax;
     }
   }
   //set myself to GO and randomize color if double clicked
   if (buttonDoubleClicked()) {
     signalState = GO;
-    changeGameState();
+    modeTimer = modeTimerMax;
   }
   cycleAngry = sin8_C(millis()/2 % 256);
   cycleHappy = sin8_C(millis()/6 % 256);
@@ -58,10 +64,11 @@ void inertLoop() {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
       if (getLastValueReceivedOnFace(f) == GO) {//a neighbor saying GO!
         signalState = GO;
-        changeGameState();
+        modeTimer = modeTimerMax;
         break;
       } if (getLastValueReceivedOnFace(f) == GOCHALLENGE) {//a neighbor saying GOCHALLENGE!
         signalState = GOCHALLENGE;
+        modeTimer = modeTimerMax;
         break;
       } else if (getLastValueReceivedOnFace(f) == gameState + 11) {
         dispAngry(f);
@@ -115,26 +122,29 @@ void goLoop() {
   //look for neighbors who have not heard the GO news
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
-      if (getLastValueReceivedOnFace(f) == INERT) {//This neighbor doesn't know it's GO time. Stay in GO
+      if (getLastValueReceivedOnFace(f) == INERT || modeTimer > 0) {//This neighbor doesn't know it's GO time. Stay in GO
         signalState = GO;
       }
     }
   }
-  setColor(dim(WHITE,150));
+  setColor(CYAN);
+  if (signalState == RESOLVE) {
+    changeGameState();
+  }
 }
 
 void goChallengeLoop() {
   signalState = RESOLVE;//I default to this at the start of the loop. Only if I see a problem does this not happen
-
-  //look for neighbors who have not heard the GOCHALLENGE news
+  
+  //look for neighbors who have not heard the GO news
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
-      if (getLastValueReceivedOnFace(f) == INERT) {//This neighbor doesn't know it's GO time. Stay in GO
+      if (getLastValueReceivedOnFace(f) == INERT || modeTimer > 0) {//This neighbor doesn't know it's GO time. Stay in GOCHALLENGE
         signalState = GOCHALLENGE;
       }
     }
   }
-  setColor(dim(MAGENTA,200));
+  setColor(MAGENTA);
   if (signalState == RESOLVE) {
     challengeMode = !challengeMode;
   }
@@ -146,7 +156,7 @@ void resolveLoop() {
   //look for neighbors who have not moved to RESOLVE
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//a neighbor!
-      if (getLastValueReceivedOnFace(f) == GO) {//This neighbor isn't in RESOLVE. Stay in RESOLVE
+      if (getLastValueReceivedOnFace(f) == GO || getLastValueReceivedOnFace(f) == GOCHALLENGE) {//This neighbor isn't in RESOLVE. Stay in RESOLVE
         signalState = RESOLVE;
       }
     }
