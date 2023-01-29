@@ -26,9 +26,9 @@ Water (blue), fire (red), plants (green), rocks (orange), and lightning (yellow)
 -Rocks cannot be next to lightning or plants
 -Lightning cannot be next to water or rocks.
 
-A happy face is worth 1 point
+Two happy faces together are worth 1 point
 A neutral face is worth 0 points
-An angry face is worth -1 point
+Two angry faces together are worth -1 point
 
 Winning:
 Try to maximize your point total.
