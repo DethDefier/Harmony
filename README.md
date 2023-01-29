@@ -24,8 +24,8 @@ Water (blue), fire (red), plants (green), rocks (orange), and lightning (yellow)
 -Rocks cannot be next to lightning or plants
 -Lightning cannot be next to water or rocks.
 
-Put all the blinks in a big blob and double click any blink in the cluster to give all blinks a new element.
-Put all the blinks in a big blob and triple click any blink in the cluster to turn all blinks into 'challenge mode'.
+Double click any blink in the cluster to give all blinks a new element.
+Triple click any blink in the cluster to turn all blinks into 'challenge mode'.
 
 In Challenge Mode:
 Blink faces are angry if they are next to a blink face of their type.
